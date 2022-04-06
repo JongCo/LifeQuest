@@ -34,6 +34,6 @@ const router = require('./router/main')(app)
 //미들웨어가 post request를 파싱한 후 이 라우터에 전달한다
 //라고 이해하면 되나
 
-const server = app.listen(3000, function() {
+const server = app.listen(30000, function() {
     console.log(`Express server has started on port ${port}`);
 })
