@@ -44,7 +44,7 @@ module.exports = function(app, db){
         res.render('login.html');
     });
 
-    //
+    //로그인 요청 처리
     app.post('/login', function(req, res){
         const username = req.body.username;
         const password = req.body.password;
@@ -66,16 +66,17 @@ module.exports = function(app, db){
                 }
             })
         } catch (err) {
-            console.log(err);
-            res.status(500).send("gg");
+            res.status(500).send(err);
         }
 
     });
     
+    //회원가입 페이지
     app.get('/signup', function(req, res){
         res.render('signup.html');
     });
     
+    //회원가입 요청 처리
     app.post('/signup', function(req, res){
         const username = req.body.username;
         const password = req.body.password;
@@ -89,7 +90,7 @@ module.exports = function(app, db){
                 }
             });
         } catch (err) {
-            res.status(500).send("gg");
+            res.status(500).json(err);
         }
     });
 
@@ -98,11 +99,7 @@ module.exports = function(app, db){
         if(req.session.logined){
             console.log("seesion확인 : " + req.session.token);
             selectDb('select_token_by_username.sql', req.session.username, (err, rows) => {
-                console.log(rows.findIndex( (element) => {
-                    if(element.token === req.session.token) return true;
-                }))
                 if ( rows && rows.findIndex( (element) => {
-                    console.log(element);
                     if(element.token === req.session.token) return true;
                 }) != -1 ) {
                     next();

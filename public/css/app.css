@@ -1,0 +1,25 @@
+#container{
+    display: flex;
+}
+
+.todo-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 2px solid black;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.todo-title{
+    text-align: center;
+}
+
+.todo-bottom{
+    display: inline-flex;
+    margin: 20px 0px 5px;
+}
+
+.add-list-text{
+    flex-grow: 1;
+}
