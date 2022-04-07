@@ -35,16 +35,24 @@ function selectDb( queryFileName, ...params){
 
 module.exports = function(app, db){
 
+    //메인 페이지 (로그인 페이지로 리다이렉션)
     app.get('/', function(req, res){
         res.redirect('./login');
     });
 
-    //로그인 페이지
+
+    /* 로그인 페이지 응답
+    * response
+    *   login.html */
     app.get('/login', function(req, res){
         res.render('login.html');
     });
 
-    //로그인 요청 처리
+
+    /* 로그인 요청 처리
+    * request
+    *   username: 로그인할 사용자 이름
+    *   password: 로그인할 사용자 패스워드 (sha256) */
     app.post('/login', function(req, res){
         const username = req.body.username;
         const password = req.body.password;
@@ -60,6 +68,7 @@ module.exports = function(app, db){
                         req.session.token = token;
                         req.session.logined = true;
                         runDb('insert_tokens.sql', token, rows[0].uid, (err, data)=>{console.log(err || 0)});
+                        //Client에게 로그인 성공했음을 알리는 더 좋은 방법 찾기
                         res.send("success");
                     })
                 } else {
@@ -71,15 +80,20 @@ module.exports = function(app, db){
         }
 
     });
+
     
-    //회원가입 페이지
+    /* 회원가입 페이지 응답
+    * response
+    *   signup.html */
     app.get('/signup', function(req, res){
         res.render('signup.html');
     });
+
     
     /*회원가입 요청 처리
-    * username : username
-    * password : password */
+    * request
+    *   username : username
+    *   password : password */
     app.post('/signup', function(req, res){
         const username = req.body.username;
         const password = req.body.password;
@@ -97,6 +111,7 @@ module.exports = function(app, db){
             res.status(500).json(err);
         }
     });
+
 
     //로그인 세션 확인 미들웨어
     app.use(function(req, res, next){
@@ -117,6 +132,10 @@ module.exports = function(app, db){
     });
     
 
+    /* todo 메인페이지 응답
+    * response
+    *   app.html
+    */
     app.get('/app', function(req, res){
         console.log(req.session.logined);
         res.render('app.html');
@@ -198,6 +217,20 @@ module.exports = function(app, db){
         })
     });
 
+
+    /* todo 성공여부 업데이트
+    * request
+    *   (url):titleid  변경할 todo식별번호
+    *   success: 
+    * response
+    *   todoList: [{
+    *       titleId: todo 식별번호
+    *       title: todo 제목
+    *       createDate: todo 생성일자
+    *       success: todo 성공여부
+    *   }, ...]  
+    *
+    */
     app.put('/app/todo/:titleid', function(req, res){
         const success = req.body.success;
         const uid = req.session.uid;
@@ -227,9 +260,10 @@ module.exports = function(app, db){
         });
     });
 
+
     /* todo목록 삭제
     * request
-    *   :titleid  삭제할 todo 식별번호
+    *   (url):titleid  삭제할 todo 식별번호
     * response
     *   todoList: [{
     *       titleId: todo 식별번호
@@ -269,6 +303,8 @@ module.exports = function(app, db){
         
     });
 
+
+    // Page Not Found 미들웨어
     app.use(function(req, res, next){
         res.render('notfound.html');
     });
