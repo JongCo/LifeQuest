@@ -23,3 +23,10 @@
 .add-list-text{
     flex-grow: 1;
 }
+
+.delete-btn{
+    border: 2px solid black;
+    border-radius: 5px;
+    margin-left: 5px;
+    font-size: 10px;
+}

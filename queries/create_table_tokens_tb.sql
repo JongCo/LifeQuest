@@ -1,6 +1,6 @@
-CREATE TABLE "users_tb" (
-	"uid"	INTEGER,
-	"username"	TEXT NOT NULL UNIQUE,
-	"password"	BLOB NOT NULL,
-	PRIMARY KEY("uid" AUTOINCREMENT)
+CREATE TABLE "tokens_tb" (
+	"token"	TEXT,
+	"uid"	INTEGER NOT NULL,
+	PRIMARY KEY("token"),
+	FOREIGN KEY("uid") REFERENCES "users_tb"("uid")
 )

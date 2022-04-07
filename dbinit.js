@@ -11,4 +11,6 @@ const db = new sqlite3.Database(dbPath, err => {
     console.log("Successful connection to the database '" + path.basename(dbPath) + "'");
 });
 
+
+
 module.exports = db;
