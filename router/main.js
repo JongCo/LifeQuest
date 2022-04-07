@@ -1,52 +1,75 @@
+const req = require("express/lib/request");
+const res = require("express/lib/response");
 const fs = require("fs");
 const path = require("path");
 const { send } = require("process");
+const db = require("../dbinit");
 
-const sessionChecker = function(req, res, next){
-    console.log("ASD" + req.session.logined);
-    if(req.session.logined){
-        next();
-    } else {
-        res.send("로그인해주시요");
-    }
+//예외처리 필요
+//따로 모듈화하면 깔끔할 듯
+function insertDb( queryFileName, ...params){
+    fs.readFile(path.join(__dirname, "..", "queries", queryFileName), (err, data) => {
+        
+        try{
+            db.run(data.toString(), ...params)
+        } catch(err) {
+            console.log(err);
+        }
+        
+    });
 }
+
+
+function selectDb( queryFileName, ...params){
+    fs.readFile(path.join(__dirname, "..", "queries", queryFileName), (err, data) => {
+        
+        try{
+            db.all(data.toString(), ...params)
+        } catch(err) {
+            console.log(err);
+        }
+    });
+}
+
+
 
 module.exports = function(app, db){
 
     app.get('/', function(req, res){
+        res.redirect('./login');
+    });
+
+    //로그인 페이지
+    app.get('/login', function(req, res){
         res.render('login.html');
     });
 
-
-    
+    //
     app.post('/login', function(req, res){
         const username = req.body.username;
         const password = req.body.password;
         
-        //이 일련의 과정을 간단하게 만들고 싶다.
-        fs.readFile(path.join(__dirname,"..", "queries", "select_users.sql"), (err, data) => {
+        try {
+            selectDb('select_users.sql', username, (err, rows) => {
+                if(password == (rows[0] && rows[0].password)){
+                    console.log("55");
+                    req.session.regenerate(function(){
+                        const token = Math.random().toString(36).substring(2, 11);
+                        req.session.username = req.body.username;
+                        req.session.token = token;
+                        req.session.logined = true;
+                        insertDb('insert_tokens.sql', token, rows[0].uid, (err, data)=>{console.log(err || 0)});
+                        res.send("success");
+                    })
+                } else {
+                    res.send("login failed");
+                }
+            })
+        } catch (err) {
             console.log(err);
-            if(err){
-                res.status(500).send("DB연결문제");
-            } else {
-                db.get(data.toString(), username, (err, row) => {
-                    if(err){
-                        console.log("main.js:21 " + err);
-                        res.status(500).send("문제감지");
-                    } else {
-                        if(password == (row && row.password)){
-                            req.session.regenerate(function(){
-                                req.session.logined = true;
-                                req.session.user_id = req.body.username;
-                                res.send("success");
-                            })
-                        } else {
-                            res.send("login failed");
-                        }
-                    }
-                });
-            }
-        })
+            res.status(500).send("gg");
+        }
+
     });
     
     app.get('/signup', function(req, res){
@@ -56,28 +79,41 @@ module.exports = function(app, db){
     app.post('/signup', function(req, res){
         const username = req.body.username;
         const password = req.body.password;
-        
-        fs.readFile(path.join(__dirname,"..", "queries", "insert_users.sql"), (err, data) => {
-            console.log(err);
-            if(err){
-                res.status(500).send("DB연결문제");
-            } else {
-                db.run(data.toString(), username, password, err => {
-                    if(err && err.errno == 19){
-                        res.status(500).send("해당 아이디는 이미 있습니다");
-                    } else if(err){
-                        console.log("main.js:49 " + err);
-                        res.status(500).send("문제감지");
-                    } else {
-                        res.send("회원가입완료");
-                    }
-                });
-            }
-        })
-        
+
+        try {
+            insertDb('insert_users.sql', (err, data) => {
+                if(!err){
+                    res.send("회원가입완료");
+                } else {
+                    res.status(500).json(err);
+                }
+            });
+        } catch (err) {
+            res.status(500).send("gg");
+        }
     });
 
-    app.use(sessionChecker);
+    //로그인 세션 확인 미들웨어
+    app.use(function(req, res, next){
+        if(req.session.logined){
+            console.log("seesion확인 : " + req.session.token);
+            selectDb('select_token_by_username.sql', req.session.username, (err, rows) => {
+                console.log(rows.findIndex( (element) => {
+                    if(element.token === req.session.token) return true;
+                }))
+                if ( rows && rows.findIndex( (element) => {
+                    console.log(element);
+                    if(element.token === req.session.token) return true;
+                }) != -1 ) {
+                    next();
+                } else {
+                    res.redirect("./login");
+                }
+            })
+        } else {
+            res.redirect("./login");
+        }
+    });
     
     app.get('/app', function(req, res){
         console.log(req.session.logined);
