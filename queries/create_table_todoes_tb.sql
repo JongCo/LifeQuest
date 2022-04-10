@@ -1,10 +1,7 @@
-CREATE TABLE "todoes_tb" (
-	"title_id"	INTEGER,
-	"title"	TEXT NOT NULL,
-	"create_date"	TEXT,
-	"uid"	INTEGER NOT NULL,
-	"success"	TEXT NOT NULL DEFAULT "false",
-	PRIMARY KEY("title_id" AUTOINCREMENT),
-	FOREIGN KEY("uid") REFERENCES "users_tb"("uid"),
-	UNIQUE("title", "uid")
-);
+CREATE TABLE `users_tb` (
+  `uid` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `password` char(64) NOT NULL,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `users_tb_un` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
