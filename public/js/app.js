@@ -8,21 +8,29 @@ let addTodo,
     todoCheck, 
     todoListLabel 
 
-const crudTodoXhr = new XMLHttpRequest();
-crudTodoXhr.addEventListener("load", e => {
+const cudTodoXhr = new XMLHttpRequest();
+cudTodoXhr.addEventListener("load", e => {
     try{
-        todoList = JSON.parse(crudTodoXhr.response);
-        render();
+        if(cudTodoXhr.status == 200){
+            initTodoXhr.open('get', './app/todo');
+            initTodoXhr.send();        
+        } else {
+            alert("해당 요청을 진행하지 못하였습니다.");
+        }
     } catch (err) {
         console.log(err)
-        console.log("response : \n" + crudTodoXhr.response);
+        console.log("response : \n" + cudTodoXhr.response);
     }
 })
 
 const initTodoXhr = new XMLHttpRequest();
 initTodoXhr.addEventListener("load", e => {
-    todoList = JSON.parse(initTodoXhr.response);
-    render();
+    if(initTodoXhr.status == 200){
+        todoList = JSON.parse(initTodoXhr.response);
+        render();
+    } else {
+        alert("TODO 목록을 불러오지 못하였습니다.");
+    }
 });
 
 function render(){
@@ -44,17 +52,17 @@ function render(){
         }
         todoCheck.addEventListener("click", e => {
             console.log("asdf");
-            crudTodoXhr.open('put', './app/todo/' + listItem.titleId);
-            crudTodoXhr.setRequestHeader("Content-Type", "application/json");
-            crudTodoXhr.send(JSON.stringify({success: todoCheck.checked}));
+            cudTodoXhr.open('put', './app/todo/' + listItem.titleId);
+            cudTodoXhr.setRequestHeader("Content-Type", "application/json");
+            cudTodoXhr.send(JSON.stringify({success: todoCheck.checked}));
         })
         todoListLabel.innerText = listItem.title;
         todoDeleteButton.className = "delete-btn";
         todoDeleteButton.innerText = "X";
         todoDeleteButton.addEventListener("click", e => {
             console.log("a");
-            crudTodoXhr.open('delete', './app/todo/'+listItem.titleId);
-            crudTodoXhr.send();
+            cudTodoXhr.open('delete', './app/todo/'+listItem.titleId);
+            cudTodoXhr.send();
         })
     
         listWrapper.appendChild(todoCheck);
@@ -79,9 +87,9 @@ window.addEventListener("load", e => {
     todoListContainer = document.getElementById('todo-list-container');
     
     addTitleButton.addEventListener("click", e => {
-        crudTodoXhr.open('post', './app/todo');
-        crudTodoXhr.setRequestHeader("Content-Type", "application/json");
-        crudTodoXhr.send(JSON.stringify({
+        cudTodoXhr.open('post', './app/todo');
+        cudTodoXhr.setRequestHeader("Content-Type", "application/json");
+        cudTodoXhr.send(JSON.stringify({
             title: addTitle.value
         }))
     });
