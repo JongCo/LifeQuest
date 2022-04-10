@@ -85,11 +85,11 @@ module.exports = function(app){
                 }) != -1 ){
                     next();
                 } else {
-                    res.redirect("./login");
+                    res.redirect("/login");
                 }
             });
         } else {
-            res.redirect("./login");
+            res.redirect("/login");
         }
     });
     
