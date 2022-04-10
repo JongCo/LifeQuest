@@ -12,8 +12,8 @@ const cudTodoXhr = new XMLHttpRequest();
 cudTodoXhr.addEventListener("load", e => {
     try{
         if(cudTodoXhr.status == 200){
-            initTodoXhr.open('get', './app/todo');
-            initTodoXhr.send();        
+            readTodoXhr.open('get', './app/todo');
+            readTodoXhr.send();        
         } else {
             alert("해당 요청을 진행하지 못하였습니다.");
         }
@@ -23,10 +23,10 @@ cudTodoXhr.addEventListener("load", e => {
     }
 })
 
-const initTodoXhr = new XMLHttpRequest();
-initTodoXhr.addEventListener("load", e => {
-    if(initTodoXhr.status == 200){
-        todoList = JSON.parse(initTodoXhr.response);
+const readTodoXhr = new XMLHttpRequest();
+readTodoXhr.addEventListener("load", e => {
+    if(readTodoXhr.status == 200){
+        todoList = JSON.parse(readTodoXhr.response);
         render();
     } else {
         alert("TODO 목록을 불러오지 못하였습니다.");
@@ -75,8 +75,8 @@ function render(){
 
 window.addEventListener("load", e => {
 
-    initTodoXhr.open('get', './app/todo');
-    initTodoXhr.send();
+    readTodoXhr.open('get', './app/todo');
+    readTodoXhr.send();
 
     testBtn = document.getElementById('test-btn');
     container = document.getElementById('container');
