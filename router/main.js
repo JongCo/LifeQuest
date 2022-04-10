@@ -140,34 +140,14 @@ module.exports = function(app){
     * request
     *   title: todo제목
     * response
-    *   todoList: [{
-    *       titleId: todo 식별번호
-    *       title: todo 제목
-    *       createDate: todo 생성일자
-    *       success: todo 성공여부
-    *   }, ...]  
-    *
+    *   status
     */
     app.post('/app/todo', function(req, res){
         const title = req.body.title;
         const uid = req.session.uid;
 
         jclqDbController.insertTodo(title, uid).then( result => {
-            jclqDbController.selectTodoList(uid).then( rows => {
-                const todoList = [];
-                delete rows.meta;
-                rows.forEach(element => {
-                    todoList.push({
-                        titleId: element.todo_id,
-                        title: element.name,
-                        createDate: element.createDate,
-                        success: element.success
-                    })
-                });
-                res.json({todoList});
-            }).catch( err => {
-                res.status(500).json(err);
-            });
+            res.end();
         }).catch( err => {
             res.status(500).json(err);
         });
@@ -179,13 +159,7 @@ module.exports = function(app){
     *   (url):titleid  변경할 todo식별번호
     *   success: 
     * response
-    *   todoList: [{
-    *       titleId: todo 식별번호
-    *       title: todo 제목
-    *       createDate: todo 생성일자
-    *       success: todo 성공여부
-    *   }, ...]  
-    *
+    *   status
     */
     app.put('/app/todo/:titleid', function(req, res){
         const success = req.body.success;
@@ -195,21 +169,7 @@ module.exports = function(app){
         console.log(success);
 
         jclqDbController.updateTodo(success.toString(), titleId).then( result => {
-            jclqDbController.selectTodoList(uid).then( rows => {
-                const todoList = [];
-                delete rows.meta;
-                rows.forEach(element => {
-                    todoList.push({
-                        titleId: element.todo_id,
-                        title: element.name,
-                        createDate: element.createDate,
-                        success: element.success
-                    })
-                });
-                res.json({todoList});
-            }).catch( err => {
-                res.status(500).json(err);
-            });
+            res.end();
         }).catch( err => {
             res.status(500).json(err);
         });
@@ -220,34 +180,14 @@ module.exports = function(app){
     * request
     *   (url):titleid  삭제할 todo 식별번호
     * response
-    *   todoList: [{
-    *       titleId: todo 식별번호
-    *       title: todo 제목
-    *       createDate: todo 생성일자
-    *       success: todo 성공여부
-    *   }, ...]  
-    *
+    *   status
     */
     app.delete('/app/todo/:titleid', function(req, res){
         const titleId = req.params.titleid;
         const uid = req.session.uid;
 
         jclqDbController.deleteTodo(titleId).then( result => {
-            jclqDbController.selectTodoList(uid).then( rows => {
-                const todoList = [];
-                delete rows.meta;
-                rows.forEach(element => {
-                    todoList.push({
-                        titleId: element.todo_id,
-                        title: element.name,
-                        createDate: element.createDate,
-                        success: element.success
-                    })
-                });
-                res.json({todoList});
-            }).catch( err => {
-                res.status(500).json(err);
-            });
+            res.end();
         }).catch( err => {
             res.status(500).json(err);
         });
