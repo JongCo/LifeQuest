@@ -1,4 +1,4 @@
-INSERT INTO todoes_tb (title, uid)
+INSERT INTO todoes_tb (name, uid)
 VALUES(
     ?,
     ?

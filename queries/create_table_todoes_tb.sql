@@ -1,7 +1,10 @@
-CREATE TABLE `users_tb` (
-  `uid` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL,
-  `password` char(64) NOT NULL,
-  PRIMARY KEY (`uid`),
-  UNIQUE KEY `users_tb_un` (`username`)
+CREATE TABLE `todoes_tb` (
+  `todo_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `create_date` datetime DEFAULT NULL,
+  `success` varchar(10) NOT NULL DEFAULT 'false',
+  `uid` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`todo_id`),
+  KEY `todoes_tb_FK` (`uid`),
+  CONSTRAINT `todoes_tb_FK` FOREIGN KEY (`uid`) REFERENCES `users_tb` (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
