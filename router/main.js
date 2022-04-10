@@ -1,4 +1,4 @@
-const db = require("../dbinit");
+const jclqDbController = require("../dbinit");
 
 module.exports = function(app){
 
@@ -24,7 +24,7 @@ module.exports = function(app){
         const username = req.body.username;
         const password = req.body.password;
         
-        db.selectUser(username).then( row => {
+        jclqDbController.selectUser(username).then( row => {
             if(password == row.password){
                 req.session.regenerate( () => {
                     const token = Math.random().toString(36).substring(2, 11);
@@ -32,7 +32,7 @@ module.exports = function(app){
                     req.session.username = req.body.username;
                     req.session.token = token;
                     req.session.logined = true;
-                    db.insertToken(token, row.uid).then( result => {
+                    jclqDbController.insertToken(token, row.uid).then( result => {
                         //TODO: status 200 상태만 전송하여 요청 성공함을 알려야 함
                         res.send("success");
                     }).catch( err => {
@@ -63,7 +63,7 @@ module.exports = function(app){
         const username = req.body.username;
         const password = req.body.password;
 
-        db.insertUser(username, password).then( result => {
+        jclqDbController.insertUser(username, password).then( result => {
             console.log(result);
             res.end();
         }).catch( err => {
@@ -78,7 +78,7 @@ module.exports = function(app){
         if(req.session.logined){
             console.log("seesion확인 : " + req.session.token);
 
-            db.selectTokenByUsername(username).then( rows => {
+            jclqDbController.selectTokenByUsername(username).then( rows => {
                 delete rows.meta;
                 if(rows.findIndex( element => {
                     if(element.token === req.session.token) return true;
@@ -117,7 +117,7 @@ module.exports = function(app){
     app.get('/app/todo', (req, res) => {
         const uid = req.session.uid;
 
-        db.selectTodoList(uid).then( rows => {
+        jclqDbController.selectTodoList(uid).then( rows => {
             const todoList = [];
             delete rows.meta;
             console.log(rows);
@@ -152,8 +152,8 @@ module.exports = function(app){
         const title = req.body.title;
         const uid = req.session.uid;
 
-        db.insertTodo(title, uid).then( result => {
-            db.selectTodoList(uid).then( rows => {
+        jclqDbController.insertTodo(title, uid).then( result => {
+            jclqDbController.selectTodoList(uid).then( rows => {
                 const todoList = [];
                 delete rows.meta;
                 rows.forEach(element => {
@@ -194,8 +194,8 @@ module.exports = function(app){
 
         console.log(success);
 
-        db.updateTodo(success.toString(), titleId).then( result => {
-            db.selectTodoList(uid).then( rows => {
+        jclqDbController.updateTodo(success.toString(), titleId).then( result => {
+            jclqDbController.selectTodoList(uid).then( rows => {
                 const todoList = [];
                 delete rows.meta;
                 rows.forEach(element => {
@@ -232,8 +232,8 @@ module.exports = function(app){
         const titleId = req.params.titleid;
         const uid = req.session.uid;
 
-        db.deleteTodo(titleId).then( result => {
-            db.selectTodoList(uid).then( rows => {
+        jclqDbController.deleteTodo(titleId).then( result => {
+            jclqDbController.selectTodoList(uid).then( rows => {
                 const todoList = [];
                 delete rows.meta;
                 rows.forEach(element => {
