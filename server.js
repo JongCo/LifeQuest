@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 
-const router = require('./router/main')(app, db);
+const router = require('./router/main')(app);
 
 
 const server = app.listen(port, function() {

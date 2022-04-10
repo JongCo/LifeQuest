@@ -9,3 +9,7 @@ package-lock.json
 
 # database
 data/
+dbconfig.json
+
+#tests
+tests

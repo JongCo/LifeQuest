@@ -1,39 +1,6 @@
-const req = require("express/lib/request");
-const res = require("express/lib/response");
-const fs = require("fs");
-const path = require("path");
-const { send } = require("process");
 const db = require("../dbinit");
 
-//예외처리 필요
-//따로 모듈화하면 깔끔할 듯
-function runDb( queryFileName, ...params){
-    fs.readFile(path.join(__dirname, "..", "queries", queryFileName), (err, data) => {
-        
-        try{
-            db.run(data.toString(), ...params)
-        } catch(err) {
-            console.log(err);
-        }
-        
-    });
-}
-
-
-function selectDb( queryFileName, ...params){
-    fs.readFile(path.join(__dirname, "..", "queries", queryFileName), (err, data) => {
-        
-        try{
-            db.all(data.toString(), ...params)
-        } catch(err) {
-            console.log(err);
-        }
-    });
-}
-
-
-
-module.exports = function(app, db){
+module.exports = function(app){
 
     //메인 페이지 (로그인 페이지로 리다이렉션)
     app.get('/', function(req, res){
@@ -57,27 +24,25 @@ module.exports = function(app, db){
         const username = req.body.username;
         const password = req.body.password;
         
-        try {
-            selectDb('select_users.sql', username, (err, rows) => {
-                if(password == (rows[0] && rows[0].password)){
-                    console.log("55");
-                    req.session.regenerate(function(){
-                        const token = Math.random().toString(36).substring(2, 11);
-                        req.session.uid = rows[0].uid;
-                        req.session.username = req.body.username;
-                        req.session.token = token;
-                        req.session.logined = true;
-                        runDb('insert_tokens.sql', token, rows[0].uid, (err, data)=>{console.log(err || 0)});
-                        //Client에게 로그인 성공했음을 알리는 더 좋은 방법 찾기
+        db.selectUser(username).then( row => {
+            if(password == row.password){
+                req.session.regenerate( () => {
+                    const token = Math.random().toString(36).substring(2, 11);
+                    req.session.uid = row.uid;
+                    req.session.username = req.body.username;
+                    req.session.token = token;
+                    req.session.logined = true;
+                    db.insertToken(token, row.uid).then( result => {
+                        //TODO: status 200 상태만 전송하여 요청 성공함을 알려야 함
                         res.send("success");
+                    }).catch( err => {
+                        res.status(500).send(err);
                     })
-                } else {
-                    res.send("login failed");
-                }
-            })
-        } catch (err) {
-            res.status(500).send(err);
-        }
+                })
+            } else {
+                res.status(400).send({message: "아이디 혹은 비밀번호가 일치하지 않습니다."});
+            }
+        })
 
     });
 
@@ -98,34 +63,31 @@ module.exports = function(app, db){
         const username = req.body.username;
         const password = req.body.password;
 
-        try {
-            runDb('insert_users.sql', username, password, (err, data) => {
-                if(!err){
-                    //Client에게 성공했음을 알리는 더 좋은 방법 찾기
-                    res.send("회원가입완료"); 
-                } else {
-                    res.status(500).json(err);
-                }
-            });
-        } catch (err) {
+        db.insertUser(username, password).then( result => {
+            console.log(result);
+            res.end();
+        }).catch( err => {
             res.status(500).json(err);
-        }
+        })
     });
 
 
     //로그인 세션 확인 미들웨어
     app.use(function(req, res, next){
+        const username = req.session.username;
         if(req.session.logined){
             console.log("seesion확인 : " + req.session.token);
-            selectDb('select_token_by_username.sql', req.session.username, (err, rows) => {
-                if ( rows && rows.findIndex( (element) => {
+
+            db.selectTokenByUsername(username).then( rows => {
+                delete rows.meta;
+                if(rows.findIndex( element => {
                     if(element.token === req.session.token) return true;
-                }) != -1 ) {
+                }) != -1 ){
                     next();
                 } else {
                     res.redirect("./login");
                 }
-            })
+            });
         } else {
             res.redirect("./login");
         }
@@ -155,20 +117,22 @@ module.exports = function(app, db){
     app.get('/app/todo', (req, res) => {
         const uid = req.session.uid;
 
-        selectDb('select_todo_list.sql', uid, (err, rows) => {
-            if(!err){
-                const todoList = [];
-                rows.forEach(element => {
-                    todoList.push({
-                        titleId: element.title_id,
-                        title: element.title,
-                        createDate: element.createDate,
-                        success: element.success
-                    })
-                });
-                res.json({todoList: todoList});
-            }
-        })
+        db.selectTodoList(uid).then( rows => {
+            const todoList = [];
+            delete rows.meta;
+            console.log(rows);
+            rows.forEach(element => {
+                todoList.push({
+                    titleId: element.todo_id,
+                    title: element.name,
+                    createDate: element.createDate,
+                    success: element.success
+                })
+            });
+            res.json({todoList: todoList});
+        }).catch( err => {
+            res.status(500).json(err);
+        });
     })
 
 
@@ -188,33 +152,25 @@ module.exports = function(app, db){
         const title = req.body.title;
         const uid = req.session.uid;
 
-        console.log(title);
-        console.log(uid);
-
-        runDb('insert_todo.sql', title, uid, (err, data) => {
-            if(!err){
-                selectDb('select_todo_list.sql', uid, (err, rows) => {
-                    if(!err){
-                        const todoList = [];
-                        rows.forEach(element => {
-                            todoList.push({
-                                titleId: element.title_id,
-                                title: element.title,
-                                createDate: element.createDate,
-                                success: element.success
-                            })
-                        });
-                        res.json({todoList: todoList});
-                    } else {
-                        res.status(500).json(err);
-                    }
-                })
-                console.log(data);
-            } else {
-                console.log(err);
+        db.insertTodo(title, uid).then( result => {
+            db.selectTodoList(uid).then( rows => {
+                const todoList = [];
+                delete rows.meta;
+                rows.forEach(element => {
+                    todoList.push({
+                        titleId: element.todo_id,
+                        title: element.name,
+                        createDate: element.createDate,
+                        success: element.success
+                    })
+                });
+                res.json({todoList});
+            }).catch( err => {
                 res.status(500).json(err);
-            }
-        })
+            });
+        }).catch( err => {
+            res.status(500).json(err);
+        });
     });
 
 
@@ -238,25 +194,24 @@ module.exports = function(app, db){
 
         console.log(success);
 
-        runDb('update_todo.sql', success.toString(), titleId, (err, data) => {
-            if(!err){
-                selectDb('select_todo_list.sql', uid, (err, rows) => {
-                    if(!err){
-                        const todoList = [];
-                        rows.forEach(element => {
-                            todoList.push({
-                                titleId: element.title_id,
-                                title: element.title,
-                                createDate: element.createDate,
-                                success: element.success
-                            })
-                        });
-                        res.json({todoList: todoList});
-                    } else {
-                        res.status(500).json(err);
-                    }
+        db.updateTodo(success.toString(), titleId).then( result => {
+            db.selectTodoList(uid).then( rows => {
+                const todoList = [];
+                delete rows.meta;
+                rows.forEach(element => {
+                    todoList.push({
+                        titleId: element.todo_id,
+                        title: element.name,
+                        createDate: element.createDate,
+                        success: element.success
+                    })
                 });
-            }
+                res.json({todoList});
+            }).catch( err => {
+                res.status(500).json(err);
+            });
+        }).catch( err => {
+            res.status(500).json(err);
         });
     });
 
@@ -277,28 +232,24 @@ module.exports = function(app, db){
         const titleId = req.params.titleid;
         const uid = req.session.uid;
 
-        runDb('delete_todo.sql', titleId, (err, data) => {
-            if(!err){
-                selectDb('select_todo_list.sql', uid, (err, rows) => {
-                    if(!err){
-                        const todoList = [];
-                        rows.forEach(element => {
-                            todoList.push({
-                                titleId: element.title_id,
-                                title: element.title,
-                                createDate: element.createDate,
-                                success: element.success
-                            });
-                        });
-                        res.json({todoList: todoList});
-                    } else {
-                        res.status(500).json(err);
-                    }
+        db.deleteTodo(titleId).then( result => {
+            db.selectTodoList(uid).then( rows => {
+                const todoList = [];
+                delete rows.meta;
+                rows.forEach(element => {
+                    todoList.push({
+                        titleId: element.todo_id,
+                        title: element.name,
+                        createDate: element.createDate,
+                        success: element.success
+                    })
                 });
-            } else {
-                console.log(err);
+                res.json({todoList});
+            }).catch( err => {
                 res.status(500).json(err);
-            }
+            });
+        }).catch( err => {
+            res.status(500).json(err);
         });
         
     });
