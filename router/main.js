@@ -1,4 +1,4 @@
-const jclqDbController = require("../dbinit");
+const jclqDbController = require("../dbcontroller");
 
 module.exports = function(app){
 
