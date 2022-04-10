@@ -54,13 +54,13 @@ const jclqDbController = {
         try{
             conn = await jclqDbPool.getConnection();
             rows = await conn.query(queryString, [username]);
+            return rows;
         }
         catch(err){
             throw err;
         }
         finally{
             if (conn) conn.end();
-            return rows;
         }
     },
 
@@ -70,13 +70,13 @@ const jclqDbController = {
         try{
             conn = await jclqDbPool.getConnection();
             rows = await conn.query(queryString, [uid]);
+            return rows;
         }
         catch(err){
             throw err;
         }
         finally{
             if (conn) conn.end();
-            return rows;
         }
     },
 
@@ -90,13 +90,13 @@ const jclqDbController = {
             res = await conn.query(queryString, [username, password]);
             await conn.commit();
             console.log(res)
+            return res;
         }
         catch(err){
             throw err;
         }
         finally{
             if (conn) conn.end();
-            return res;
         }
     },
 
@@ -110,13 +110,13 @@ const jclqDbController = {
             res = await conn.query(queryString, [token, uid]);
             await conn.commit();
             console.log(res)
+            return res;
         }
         catch(err){
             throw err;
         }
         finally{
             if (conn) conn.end();
-            return res;
         }
     },
 
@@ -130,13 +130,13 @@ const jclqDbController = {
             res = await conn.query(queryString, [name, uid]);
             await conn.commit();
             console.log(res)
+            return res;
         }
         catch(err){
             throw err;
         }
         finally{
             if (conn) conn.end();
-            return res;
         }
     },
 
@@ -150,13 +150,13 @@ const jclqDbController = {
             res = await conn.query(queryString, [success, todoId]);
             await conn.commit();
             console.log(res)
+            return res;
         }
         catch(err){
             throw err;
         }
         finally{
             if (conn) conn.end();
-            return res;
         }
     },
 
@@ -169,13 +169,13 @@ const jclqDbController = {
             await conn.beginTransaction();
             res = await conn.query(queryString, [todoId]);
             await conn.commit();
+            return res;
         }
         catch(err){
             throw err;
         }
         finally{
             if (conn) conn.end();
-            return res;
         }
     }
 }
