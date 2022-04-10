@@ -1,9 +1,5 @@
 const path = require("path");
 
-
-//DB가 준비되어야 서버가 실행되도록 하고싶다.
-const db = require("./dbinit"); 
-
 const express = require('express'); 
 const session = require('express-session');
 const app = express();
