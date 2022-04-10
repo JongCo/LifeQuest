@@ -94,13 +94,4 @@ window.addEventListener("load", e => {
         }))
     });
 
-    
-    
-    //버튼을 누르면 todoLists에 따라 동적으로 DOM을 생성하고
-    //todo-list-container를 생성하여 내용을 채운다.
-    //나중에는 로드시 자동으로 생성한다.
-    testBtn.addEventListener('click', e => {
-            
- 
-    });
 });
