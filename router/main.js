@@ -25,7 +25,7 @@ module.exports = function(app){
         const password = req.body.password;
         
         jclqDbController.selectUser(username).then( row => {
-            if(password == row.password){
+            if(row && (password == row.password)){
                 req.session.regenerate( () => {
                     const token = Math.random().toString(36).substring(2, 11);
                     req.session.uid = row.uid;
